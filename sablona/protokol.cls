@@ -39,7 +39,7 @@
 
 \pagestyle{fancy} % empty, plain
 \setlength{\headheight}{15pt}                       % Výška záhlaví
-\lhead{\Vutsub\textbf{\textcolor{gray}{\@autor\ (\@autorID) }}}          
+\lhead{\Vutsub\textbf{\textcolor{gray}{\@autor,\ \@autorr,\ \@autorrr}}}          
         % Záhlaví vlevo
 \rhead{\Vutsub\textbf{\textcolor{gray}{\@nazev}}}   % Záhlaví vpravo
 \lfoot{}                                            % Zápatí vlevo
@@ -96,8 +96,11 @@
 
 \def\autor #1{\def\@autor{#1}}
 \def\autorr #1{\def\@autorr{#1}}
+\def\autorrr #1{\def\@autorrr{#1}}
 \def\autorID #1{\def\@autorID{#1}}
 \def\autorrID #1{\def\@autorrID{#1}}
+\def\autorrrID #1{\def\@autorrrID{#1}}
+
 %=================================================================
 % Sazba titulní stránky
 \renewcommand{\maketitle}{
@@ -110,18 +113,20 @@
     \begin{center}
         \vspace{0.01\textheight}
         {\Vutmid\textbf{SEMINÁRNÍ PRÁCE}}\\
-        \vspace{0.24\textheight}
+        \vspace{0.18\textheight}
         {\Vutbig\textbf{\@nazev}}                      % Název laboratorní úlohy
-        \vspace{0.2\textheight}\\
+        \vspace{0.15\textheight}\\
         
     \end{center} 
        
     \begin{tabbing}
         \Large\textbf{Jméno a příjmení:}    \qquad\quad  	\= Hodnoty. \kill
         
-        \Vutsmall\textbf{AUTOR :}	            \> \Vutsmall\textbf{\@autor\ (\@autorID)}\\
+        \Vutsmall\textbf{AUTOR 1:}	            \> \Vutsmall\textbf{\@autor\ (\@autorID)}\\
         \\
         \Vutsmall\textbf{AUTOR 2:}	            \> \Vutsmall\textbf{\@autorr\ (\@autorrID)}\\
+        \\
+        \Vutsmall\textbf{AUTOR 3:}	            \> \Vutsmall\textbf{\@autorrr\ (\@autorrrID)}\\
         \\
         \Vutsmall\textbf{ROČNÍK:}               \> \Vutsmall\textbf{\@rocnik}\\
         \\

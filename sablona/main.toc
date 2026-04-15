@@ -1,2 +1,23 @@
 \babel@toc {czech}{}\relax 
-\contentsline {section}{Zadání}{1}{figure.caption.1}%
+\contentsline {section}{1\hskip 1em\relax Úvod}{1}{figure.caption.1}%
+\contentsline {section}{2\hskip 1em\relax Business otázky}{1}{figure.caption.1}%
+\contentsline {subsection}{BQ1: Vliv dne v týdnu na spolehlivost}{1}{section*.2}%
+\contentsline {subsection}{BQ2: Vztah vzdálenosti a zpoždění}{2}{section*.2}%
+\contentsline {subsection}{BQ3: Schopnost dopravců kompenzovat zpoždění}{2}{section*.2}%
+\contentsline {subsection}{BQ4: Stabilita a volatilita výkonu v čase}{2}{section*.2}%
+\contentsline {section}{3\hskip 1em\relax Práce s metadaty}{3}{section*.2}%
+\contentsline {subsection}{a) Výběr atributů}{3}{section*.3}%
+\contentsline {subsection}{b) Vysvětlení významu klíčových atributů}{3}{section*.3}%
+\contentsline {subsection}{c) Omezení a specifika dat (a jejich ošetření)}{4}{section*.3}%
+\contentsline {section}{4\hskip 1em\relax Data audit a integrace}{5}{section*.3}%
+\contentsline {subsection}{Popis ETL logiky}{5}{section*.4}%
+\contentsline {subsection}{Data Quality \& Cleaning Decisions}{5}{Item.3}%
+\contentsline {section}{5\hskip 1em\relax Interpretace a doporučení}{6}{table.1}%
+\contentsline {subsection}{Hlavní zjištění}{6}{section*.5}%
+\contentsline {subsubsection}{Zjištění 1 (BQ1): Pátek je systematicky nejproblematičtějším dnem}{6}{section*.5}%
+\contentsline {subsubsection}{Zjištění 2 (BQ2): Střední lety trpí vyšší mírou zpoždění}{7}{figure.caption.7}%
+\contentsline {subsubsection}{Zjištění 3 (BQ3): Rozdílná schopnost kompenzace}{9}{figure.caption.9}%
+\contentsline {subsubsection}{Zjištění 4 (BQ4): Skrytá nestabilita výkonu v čase}{9}{figure.caption.10}%
+\contentsline {subsection}{Konkrétní doporučení}{10}{figure.caption.11}%
+\contentsline {subsection}{Limity analýzy}{11}{figure.caption.11}%
+\contentsline {section}{6\hskip 1em\relax Závěr}{11}{figure.caption.11}%

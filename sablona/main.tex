@@ -10,8 +10,8 @@
 \usepackage{amsmath}
 \usepackage{cite}
 \usepackage{booktabs}
-
-
+\usepackage{array}
+\usepackage{ragged2e}
 
 %------------------- Zde vyplňte údaje -------------------------------
 \autor{Marek Tatýrek}
@@ -20,21 +20,300 @@
 \autorr{Albert Kindl}
 \autorrID{228632}
 
+\autorrr{Mojmír Němec}
+\autorrrID{229050}
+
 \rocnik{1}
 \merenodne{6.\,3.\,2026}
 \nazev{ANALÝZA LETECKÝCH DAT}
-\predmet{Bussiness Intelligence}
+\predmet{Business Intelligence}
 
 %=====================================================================
 \begin{document}
-\pagenumbering{gobble} 
-\maketitle                  
-\tableofcontents\newpage 
-\pagenumbering{arabic}  
+\pagenumbering{gobble}
+\maketitle\newpage
+\tableofcontents\newpage
+\pagenumbering{arabic}
 %------------------- Zde začíná samotný dokument ---------------------
-\newcommand{\sirkasloupce}{1,6}
-\newcommand{\vyskaradku}{1,1} 
 
-\section{Zadání}
+% ===================================================================
+\section{1\quad Úvod}
+
+Tato semestrální práce se zaměřuje na analýzu spolehlivosti letecké dopravy v~USA v~období let 2022 až 2024. Jako primární zdroj slouží reálná provozní data z~datasetu ,,On-Time Reporting Carrier On-Time Performance`` poskytovaná americkým ministerstvem dopravy (BTS). Zpracovávána je rozsáhlá datová sada pokrývající 36 měsíců provozu, která detailně mapuje průběh uskutečněných letů.
+
+Hlavním cílem projektu je navrhnout, realizovat a interpretovat ucelené Business Intelligence řešení, které transformuje surová data na informace využitelné pro manažerské rozhodování. Práce systematicky aplikuje celý analytický proces: od detailního studia metadat a datového auditu, přes datové transformace, až po vizualizaci a interpretaci výsledků. Výstupem je zodpovězení čtyř konkrétních byznysových otázek, které zkoumají skryté trendy ve zpožděních, vliv vzdálenosti a schopnost jednotlivých dopravců kompenzovat časové ztráty. Na základě těchto zjištění jsou v~závěru formulována praktická a adresná doporučení pro optimalizaci letištního provozu a plánování letových řádů.
+
+% ===================================================================
+\section{2\quad Business otázky}
+
+Cílem této práce je odpovědět na následující business otázky zaměřené na spolehlivost letecké dopravy. Každá otázka byla formulována tak, aby byla striktně časově vymezená (roky 2022--2024), vázaná na konkrétní entity a měřitelná pomocí přesně definovaných KPI. Tím předcházíme obecným a analyticky neuchopitelným dotazům.
+
+\subsection{BQ1: Vliv dne v týdnu na spolehlivost}
+
+\begin{itemize}
+    \item \textbf{Otázka:} Jak se liší spolehlivost letů mezi jednotlivými dny v~týdnu v~období 2022--2024 a existují dny se systematicky vyšší mírou zpoždění?
+    \item \textbf{Zkoumané entity:} \texttt{DayOfWeek} (den v~týdnu), typ dne (pracovní vs. víkend).
+    \item \textbf{Klíčové KPI:} \texttt{ArrDel15} Rate (frekvence), Avg \texttt{ArrDelayMinutes} (intenzita).
+\end{itemize}
+
+Analyzujeme konkrétní kalendářní úsek ve vymezeném tříletém období. Spolehlivost neměříme pouze pocitově, ale rozdělili jsme ji na dvě oddělená KPI: pravděpodobnost, že let bude mít zpoždění nad 15 minut (\texttt{ArrDel15} Rate), a průměrnou délku tohoto zpoždění v~minutách. To nám umožňuje zjistit, zda v~určité dny lety meškají častěji, nebo zda je zpoždění méně časté, ale o to masivnější.
+
+\subsection{BQ2: Vztah vzdálenosti a zpoždění}
+
+\begin{itemize}
+    \item \textbf{Otázka:} Existuje v~období 2022--2024 vztah mezi délkou letu (vzdáleností) a mírou zpoždění příletu a jsou delší lety náchylnější ke zpoždění než krátké?
+    \item \textbf{Zkoumané entity:} Kategorie vzdálenosti (krátký do 500 mil, střední, dlouhý).
+    \item \textbf{Klíčové KPI:} \texttt{ArrDel15} Rate, Avg \texttt{ArrDelayMinutes}, Median \texttt{ArrDelayMinutes}.
+\end{itemize}
+
+Otázka nezkoumá plošný ,,vliv vzdálenosti``, ale vyžaduje kategorizaci záznamů do přesných logických segmentů. Zásadním analytickým prvkem je zde doplnění průměru o medián (\texttt{Median ArrDelayMinutes}). Uvědomujeme si totiž silnou asymetrii dat u~zpoždění letů (většina letů je včas, ale outliery sahají do stovek minut), kde by samotný průměr mohl vést k~chybným závěrům o typické zákaznické zkušenosti.
+
+\subsection{BQ3: Schopnost dopravců kompenzovat zpoždění}
+
+\begin{itemize}
+    \item \textbf{Otázka:} Jaký je v~období 2022--2024 vztah mezi zpožděním odletu a zpožděním příletu a do jaké míry jsou dopravci schopni zpoždění během letu kompenzovat?
+    \item \textbf{Zkoumané entity:} Dopravce (\texttt{Reporting\_Airline}), let.
+    \item \textbf{Klíčové KPI:} Avg \texttt{DepDelayMinutes}, Avg \texttt{ArrDelayMinutes}, Avg Delay Difference.
+\end{itemize}
+
+Ptáme se na konkrétní schopnost kompenzace (tzv. catch-up efekt během letu). Otázka je exaktně vázána na entitu dopravce a k~jejímu zodpovězení jsme vytvořili vlastní odvozené KPI~-- rozdíl mezi příletovým a odletovým zpožděním (Delay Difference). Díky tomu nehodnotíme aerolinku jen podle toho, s~jakým zpožděním letadlo přebírá, ale jak efektivně s~ním dokáže ve vzduchu pracovat.
+
+\subsection{BQ4: Stabilita a volatilita výkonu v čase}
+
+\begin{itemize}
+    \item \textbf{Otázka:} Jak stabilní je výkon jednotlivých dopravců v~čase (2022--2024) a dochází k~výrazným výkyvům ve spolehlivosti mezi měsíci?
+    \item \textbf{Zkoumané entity:} Dopravce (\texttt{Reporting\_Airline}), měsíc/rok.
+    \item \textbf{Klíčové KPI:} \texttt{ArrDel15} Rate, Avg \texttt{ArrDelayMinutes}, StdDev \texttt{ArrDelayMinutes}.
+\end{itemize}
+
+Otázka se nespokojuje s~celkovým tříletým průměrem, který často maskuje sezónní extrémy, ale vyžaduje sledování trendu na měsíční granularitě. Kromě standardních KPI jsme do otázky záměrně integrovali měření směrodatné odchylky (\texttt{StdDev ArrDelayMinutes}). To nám umožňuje analyzovat volatilitu -- identifikujeme tak dopravce, kteří například sice v~celoročním průměru vypadají spolehlivě, ale v~letních špičkách jejich systém fatálně selhává.
+
+% ===================================================================
+\section{3\quad Práce s metadaty}
+
+Základním předpokladem pro zajištění metodické správnosti výpočtů KPI a zamezení logických chyb byla detailní analýza oficiálního datového slovníku. Neznalost metadat totiž vede k~chybným výpočtům KPI a špatné interpretaci. V~této kapitole je popsáno, jak jsme datový slovník aktivně využili k~výběru atributů, jak interpretujeme jejich význam a jak jsme se vypořádali s~datovými omezeními.
+
+\subsection{a) Výběr atributů}
+
+Při návrhu analytického modelu jsme nepostupovali ,,naslepo``, ale pro každou business otázku jsme z~metadat záměrně vybrali ty atributy, které zaručují robustní výpočet:
+
+\begin{itemize}
+    \item Pro identifikaci dopravce (BQ3, BQ4) jsme záměrně zvolili atribut \texttt{Reporting\_Airline} (Unique Carrier Code). Slovník výslovně varuje, že IATA kódy mohou být v~čase přiřazeny různým dopravcům a nejsou vždy unikátní, a proto je pro analýzu napříč lety (zde 2022--2024) nutné použít právě Unique Carrier Code.
+
+    \item Pro výpočet průměrných zpoždění jsme zásadně nevyužívali ruční odčítání časových polí plánovaného a skutečného času (CRS vs. Actual), jak předepisuje metodika. Zvolili jsme přímo předpočítané metriky \texttt{DepDelayMinutes} a \texttt{ArrDelayMinutes}, abychom zamezili zkreslení.
+
+    \item Pro sledování primárních příčin zpoždění (kategorizace v~BQ2) jsme vybrali pole \texttt{CarrierDelay}, \texttt{WeatherDelay} či \texttt{LateAircraftDelay}, u~kterých datový slovník jasně definuje, že hodnoty jsou v~minutách.
+\end{itemize}
+
+\subsection{b) Vysvětlení významu klíčových atributů}
+
+Atributy používané pro KPI jsme rozdělili na spojité metriky a binární indikátory. U~každého jsme museli zohlednit specifickou logiku jeho hodnot:
+
+\textbf{Metrika zpoždění (\texttt{ArrDelayMinutes}/\texttt{DepDelayMinutes}):} Tato pole měří intenzitu zpoždění v~minutách. Datový slovník striktně rozlišuje mezi standardními poli ,,Delay`` a ,,DelayMinutes``. Zatímco pole \texttt{DepDelay}/\texttt{ArrDelay} nabývají i záporných hodnot v~případě předčasného odletu či příletu, u~polí s~příponou ,,Minutes`` jsou tyto záporné (předčasné) odchylky automaticky ošetřeny a nastaveny na 0. V~naší analýze jsme záměrně použili pole \texttt{DelayMinutes} pro výpočet průměru. Pokud bychom použili atributy se zápornými hodnotami, dopravce, který cíleně létá dříve, než plánoval, by matematicky ,,vymazal`` svá kritická zpoždění a průměr by neadekvátně klesl. Použitím ,,Minutes`` měříme pouze čistý negativní dopad na zákazníka.
+
+\textbf{Indikátor zpoždění (\texttt{ArrDel15}):} Na rozdíl od výše uvedených metrik, které měří ,,jak moc`` se let zpozdil, \texttt{ArrDel15} je binární indikátor určující ,,zda vůbec`` let překročil toleranci 15 minut (1=Yes). V~naší analýze jej používáme k~segmentaci letů a výpočtu hlavního KPI \texttt{ArrDel15} Rate (podíl zpožděných letů). Tento atribut eliminuje zkreslení outliery -- let zpožděný o~16 minut má zde stejnou váhu jako let zpožděný o~5 hodin.
+
+\textbf{Kategorizační dimenze (\texttt{Distance} a \texttt{DayOfWeek}):} \texttt{DayOfWeek} udává kalendářní kontext letu a slouží nám pro vytvoření vlastní dimenze Typ dne (Pracovní dny 1--5 vs. Víkend 6--7). \texttt{Distance} měří vzdálenost mezi letišti v~mílích. V~naší analýze pro BQ2 jsme tuto číselnou metriku využili ke klastrování do tří kategorií (krátké do 500 mil, střední do 1500 mil a dlouhé nad 1500 mil).
+
+\subsection{c) Omezení a specifika dat (a jejich ošetření)}
+
+Klíčovým úkolem z~pohledu Business Intelligence bylo ošetřit záznamy, které za určitých podmínek nedávají smysl a při prostém výpočtu průměru nebo jiných metrik by znehodnotily výsledky. Analyzovali jsme následující omezení definovaná v~metadatech:
+
+\textbf{Zrušené lety (\texttt{Cancelled = 1}):} Datový slovník definuje indikátor zrušeného letu. Zásadním specifikem těchto záznamů je, že neobsahují validní skutečné časy a tudíž ani hodnoty zpoždění. Zrušené lety metodicky nepatří do KPI měřících zpoždění. Pokud bychom tyto lety neodfiltrovali, prázdné nebo nulové hodnoty v~časech by zásadně zkreslily výpočet průměrného zpoždění pro BQ1 až BQ4. Na základě zjištění jsme pro účely měření času tyto záznamy před agregací zcela oddělili.
+
+\textbf{Odkloněné lety (\texttt{Diverted = 1}):} Podobné specifikum platí pro odkloněné lety. Z~metadat vyplývá, že u~odkloněných letů zůstává standardní atribut \texttt{ArrDelay} jako NULL. Přestože tyto lety fyzicky odletěly, nedorazily do své plánované destinace, a proto pro ně nelze měřit standardní zpoždění příletu. V~rámci datového auditu jsme vyřadili všechny záznamy s~\texttt{Diverted=1} z~operačního datasetu (\texttt{df\_ops}). Zahrnutí takových letů by buď způsobilo chybu ve výpočtu kvůli NULL hodnotám, nebo by v~lepším případě uměle zmenšilo jmenovatel při výpočtu průměru.
+
+\textbf{Zkreslení silnou asymetrií dat zpoždění:} Z~povahy atributu \texttt{ArrDelayMinutes} vyplývá, že obrovské množství záznamů nabývá hodnoty 0 (včasné lety), zatímco část záznamů představuje extrémní výkyvy (zpoždění přesahující 500 minut kvůli kalamitám). Pokud se pro interpretaci spolehlivosti použije výhradně průměr (Avg ArrDelay), je hodnota silně pod vlivem outlierů a neodráží realitu typického letu. Z~tohoto důvodu jsme se rozhodli v~rámci BQ2 pracovat vedle průměru povinně i s~mediánem a distribučním rozptylem, čímž jsme ošetřili interpretační zkreslení vyplývající ze statistické povahy dat.
+
+% ===================================================================
+\section{4\quad Data audit a integrace}
+
+\subsection{Popis ETL logiky}
+
+Zpracování 36 měsíčních souborů proběhlo programově v~jazyce Python (knihovna pandas):
+
+\begin{enumerate}
+    \item \textbf{Extract:} Hromadné načtení všech 36 CSV souborů z~adresáře přes funkci \texttt{glob}. Byla provedena projekce pouze na relevantní sloupce pro minimalizaci paměťové náročnosti a ověřeno 100\,\% pokrytí let 2022--2024.
+
+    \item \textbf{Transform:} Filtrování uskutečněných letů (vyřazení \texttt{Cancelled=1} a \texttt{Diverted=1}). Odstranění nekompletních záznamů s~NULL hodnotami u~klíčových metrik (\texttt{ArrDelayMinutes}, \texttt{Distance}). Doplnění chybějících hodnot \texttt{ArrDel15}. Výpočet odvozených atributů: \texttt{DayType}, \texttt{DistanceCat}, \texttt{DelayDiff} a \texttt{YearMonth}.
+
+    \item \textbf{Load:} Výstupem je vyčištěný dataset operačních letů (\texttt{df\_ops}) odeslaný pro výpočet KPI a vizualizace.
+\end{enumerate}
+
+\subsection{Data Quality \& Cleaning Decisions}
+
+\definecolor{headergray}{gray}{0.80}
+
+\begin{longtable}{|>{\RaggedRight}p{3.2cm}|>{\RaggedRight}p{3.6cm}|>{\RaggedRight}p{3.0cm}|>{\RaggedRight}p{4.2cm}|}
+\hline
+\rowcolor{headergray}
+\textbf{Problém / Zjištění} & \textbf{Řešení (Pravidlo)} & \textbf{Dopad na KPI} & \textbf{Zdůvodnění (vazba na metadata)} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{headergray}
+\textbf{Problém / Zjištění} & \textbf{Řešení (Pravidlo)} & \textbf{Dopad na KPI} & \textbf{Zdůvodnění (vazba na metadata)} \\
+\hline
+\endhead
+\hline
+\endfoot
+
+Datové typy sloupců
+& \texttt{low\_memory=False} při načtení
+& Zamezení selhání výpočtů
+& Metadata definují typy; optimalizace brání false-positive konfliktům. \\[2pt]
+\hline
+
+\texttt{Cancelled=1} (chybí časy)
+& Vyloučeny z delay KPI, separátní KPI
+& Zamezení zkreslení průměru
+& Metadata: u \texttt{Cancelled=1} nejsou pole \texttt{DelayMinutes} relevantní. \\[2pt]
+\hline
+
+\texttt{Diverted=1} (neúplné zpoždění)
+& Vyloučení z operačního datasetu
+& Zamezení zkreslení \texttt{ArrDelay}
+& Metadata: \texttt{ArrDelayMinutes} je pro přesměrované lety NULL. \\[2pt]
+\hline
+
+NULL v \texttt{ArrDelayMinutes}
+& Řádky dropnuty z datasetu
+& Přesné průměry
+& Bez hodnoty nelze počítat žádné zpoždění. \\[2pt]
+\hline
+
+\texttt{ArrDel15} NULL
+& Doplněno logikou \texttt{ArrDelayMinutes} $\geq$ 15
+& Záchrana podhodnocení \texttt{ArrDel15} Rate
+& Přímé odvození z oficiální definice \texttt{ArrDel15}. \\[2pt]
+\hline
+
+Záporné \texttt{DepDelayMinutes}
+& Nejsou odstraněny (nastaveny na 0)
+& Relevantní pro BQ3 kompenzaci
+& \texttt{DepDelayMinutes = 0} pro brzké odlety. \\[2pt]
+\hline
+
+Extrémní outliery ($>$500 min)
+& Ponechány, sledován i medián
+& Zajištění robustnosti (BQ2)
+& Outliery jsou reálné kalamity, smazáním bychom zkreslili realitu. \\[2pt]
+\hline
+
+\texttt{Distance = NULL}
+& Řádky dropnuty
+& Přesná kategorizace letů (BQ2)
+& \texttt{Distance} je povinný atribut. \\
+
+\end{longtable}
+
+% ===================================================================
+\section{5\quad Interpretace a doporučení}
+
+\subsection{Hlavní zjištění}
+
+\subsubsection{Zjištění 1 (BQ1): Pátek je systematicky nejproblematičtějším dnem}
+
+\textbf{Tvrzení:} Pátek vykazuje systematicky nejvyšší hodnotu \texttt{ArrDel15} Rate. Nadprůměrně často nabírají zpoždění také lety ve čtvrtek a v~neděli. Naopak nejméně zpoždění nabírají lety v~úterý a ve středu. Celoročně platí, že víkendové lety mají lehce vyšší podíl zpožděných letů. Výjimku tvoří měsíc květen, kdy je trend lehce opačný, a březen, kdy je podíl zpoždění víkendových letů výrazně vyšší než u~všedních dnů. Víkendové statistiky zhoršují především nedělní lety; sobotní se pohybují kolem průměrné míry.
+
+\textbf{Důkaz:} Viz obrázek~\ref{fig:bq1v1} a obrázek~\ref{fig:bq1v3}. Provozní hustota na konci pracovního týdne kumuluje zpoždění, která se propagují přes celý systém.
+
+\textbf{Význam:} Management by měl cílit opatření zejména na páteční, respektive víkendové spoje, nikoliv plošně na celý týden.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../Solution/plots/bq1_viz1_delay_by_weekday.png}
+    \caption{Míra zpoždění letu podle dne v týdnu}
+    \label{fig:bq1v1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../Solution/plots/bq1_viz3_seasonal_by_daytype.png}
+    \caption{Rozdíl mezi víkendy a všedními dny v závislosti na měsíci}
+    \label{fig:bq1v3}
+\end{figure}
+
+\subsubsection{Zjištění 2 (BQ2): Střední lety trpí vyšší mírou zpoždění}
+
+\textbf{Tvrzení:} Střední a dlouhé lety (500--1\,500 mi a $>$\,1\,500 mil) vykazují vyšší \texttt{ArrDel15} Rate než krátké lety, přičemž relativní pořadí kategorií zůstává konzistentní po celý rok. Sezónnost je výrazná a jednotná napříč všemi kategoriemi: červenec představuje absolutní vrchol (Střední 28,8\,\%, Dlouhý 27,6\,\%, Krátký 25,0\,\%), říjen a listopad jsou nejklidnějšími měsíci s~přibližně polovičními hodnotami, prosinec pak vykazuje sekundární nárůst vlivem svátečního provozu.
+
+\textbf{Důkaz:} Viz obrázek~\ref{fig:bq2v1} a obrázek~\ref{fig:bq2v4}.
+
+\textbf{Význam:} Střední a dlouhé lety jsou prokazatelně méně spolehlivé než krátké. Při jejich hodnocení je však třeba volit správné metriky -- průměr je zkreslený extrémními výpadky (stovky minut), medián je naopak nulový, protože většina letů přilétá včas. Ani jedna z těchto metrik tedy nevypovídá o~typickém ,,špatném`` letu. Vhodnější je sledovat například 90. percentil, který odřízne výjimečné kalamity a ukáže horní hranici běžného provozního zpoždění. Extrémní outliery zaslouží samostatnou pozornost -- mívají jinou příčinu (počasí, technické výpadky) a vyžadují jiná opatření než standardní provozní zpoždění.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../Solution/plots/bq2_viz1_arrDel15_by_distance.png}
+    \caption{Míra zpoždění letů podle jejich délky}
+    \label{fig:bq2v1}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../Solution/plots/bq2_viz4_seasonal_by_distance.png}
+    \caption{Sezónnost zpoždění pro různé délky letů}
+    \label{fig:bq2v4}
+\end{figure}
+
+\subsubsection{Zjištění 3 (BQ3): Rozdílná schopnost kompenzace}
+
+\textbf{Tvrzení:} Část dopravců systematicky kompenzuje zpoždění během letu (záporná hodnota Avg DelayDiff), zatímco jiní zpoždění průměrně zhoršují. Nejlépe si vedou aerolinky WN, které zpoždění průměrně stahují o~1,5 minuty. Na druhém konci spektra jsou aerolinky YX s~nárůstem +1,3 minuty, avšak je důležité toto číslo zasadit do kontextu: YX mají nejnižší průměrné odletové zpoždění ze všech sledovaných dopravců (9,96 min) a i~přes nárůst během letu patří jejich příletové zpoždění (11,30 min) k~nejlepším. Negativní DelayDiff u~YX tedy neindikuje celkovou nespolehlivost, ale spíše nižší schopnost využít letový čas ke kompenzaci -- na rozdíl od WN nebo DL, kteří i~s~vyšším odletovým zpožděním část ztráty dohnají.
+
+\textbf{Důkaz:} Viz obrázek~\ref{fig:bq3v1}.
+
+\textbf{Význam:} Schopnost kompenzace je klíčovým indikátorem operační efektivity a kvality plánování letů jednotlivými aerolinkami. Manageři horších aerolinek by se měli inspirovat procesy v~těch lepších.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../Solution/plots/bq3_viz1_dumbbell_top10.png}
+    \caption{Kompenzace zpoždění u různých dopravců}
+    \label{fig:bq3v1}
+\end{figure}
+
+\subsubsection{Zjištění 4 (BQ4): Skrytá nestabilita výkonu v čase}
+
+\textbf{Tvrzení:} Samotná frekvence zpoždění (\texttt{ArrDel15} Rate) maskuje propastné rozdíly v~provozní stabilitě jednotlivých dopravců. Například dopravce AA sice nepatří k~nejhorším v~četnosti zpoždění, ale vykazuje nejvyšší směrodatnou odchylku, což pro cestující i~návazné spoje znamená obrovskou nepředvídatelnost. Naopak aerolinky jako DL nebo WN dokazují, že i~při masivním objemu letů lze udržet konzistenci a nízké výkyvy ve zpožděních. Dopravci v~pravém horním kvadrantu (např. F9, B6) naopak selhávají v~obou metrikách, neboť jejich lety meškají velmi často a zároveň s~obrovskými časovými výkyvy. Pro objektivní hodnocení spolehlivosti linek je tedy kritické nespoléhat pouze na průměr, ale sledovat právě směrodatnou odchylku, která odhaluje skutečnou provozní odolnost dopravce vůči krizím.
+
+\textbf{Důkaz:} Viz obrázek~\ref{fig:bq4v2}.
+
+\textbf{Význam:} Výběr strategických partnerů nesmí stát jen na průměru, ale i~na schopnosti udržet konzistentní výkon.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../Solution/plots/bq4_viz2_performance_stability.png}
+    \caption{Stabilita aerolinek}
+    \label{fig:bq4v2}
+\end{figure}
+
+\subsection{Konkrétní doporučení}
+
+\begin{itemize}
+    \item \textbf{Cílení na páteční rotace:} U~dopravců s~nejvyšší páteční \texttt{ArrDel15} Rate přezkoumat plánování bufferů v~páteční odpolední špičce. Snížení zpoždění v~tento den zabrání dominovému efektu na celý víkend.
+
+    \item \textbf{Změna metodiky reportingu:} Průměrné zpoždění doplnit o~podmíněný průměr pouze pro zpožděné lety (\texttt{ArrDelayMinutes} $>$ 0) a o~90. percentil. Bezpodmínečný medián je nevhodný -- přesahuje-li podíl včasných letů 50\,\%, vychází nula a neposkytuje žádnou informaci. Podmíněný průměr naopak říká ,,když už let meškalo, o kolik to typicky bylo``, a 90. percentil ukáže horní hranici běžného zpoždění bez zkreslení výjimečnými kalamitami.
+
+    \item \textbf{Audit letových řádů:} Dopravci s~vysokou kladnou hodnotou Avg DelayDiff by měli prověřit plánování turnaround časů a rotací, protože zpoždění systematicky nabírají, místo aby jej kompenzovali.
+
+    \item \textbf{Nové metriky pro strategická partnerství:} Při výběru dopravce pro codeshare preferovat stabilitu (nízká StdDev). Zahrnout StdDev jako standardní KPI do kvartálního hodnocení partnerů.
+\end{itemize}
+
+\subsection{Limity analýzy}
+
+\begin{itemize}
+    \item \textbf{Absence externího kontextu:} Analýza nepracuje s~daty o~počasí a kapacitě vzdušného prostoru. Výkyvy v~letních špičkách mohou být dány čistě externími faktory.
+
+    \item \textbf{Průměry u asymetrických rozdělení:} Průměrné zpoždění je extrémně citlivé na ojedinělé technologické výpadky. Průměr nadhodnocuje reálný stav většiny letů.
+
+    \item \textbf{Omezená kauzalita:} Zjištěné trendy jsou historické korelace, nikoliv absolutní kauzální vztahy.
+\end{itemize}
+
+% ===================================================================
+\section{6\quad Závěr}
+
+Tato práce prokázala, že hloubková analýza leteckých dat za roky 2022--2024 dokáže odhalit kritické neefektivity, které běžný reporting často přehlíží. Klíčovým zjištěním je potvrzení pátečních špiček jako hlavního zdroje řetězeného zpoždění a nutnost používat v~reportingu také medián namísto samotného průměru, který je silně zkreslen extrémními hodnotami. Analýza stability (směrodatné odchylky) navíc odhalila, že někteří dopravci představují pro zákazníky vysoké riziko nepředvídatelnosti, i~když jejich průměrné výsledky vypadají na první pohled přijatelně.
+
+Na základě zjištění byla formulována čtyři konkrétní doporučení: cílení bufferů na páteční odpolední špičku, kde se zpoždění kaskádově šíří do celého víkendu; nahrazení průměrného zpoždění podmíněným průměrem a 90. percentilem pro přesnější KPI reporting; audit turnaround plánování u dopravců, kteří zpoždění během letu systematicky zhoršují; a zahrnutí směrodatné odchylky jako standardního KPI při hodnocení spolehlivosti partnerů. Projekt tak plně naplnil svůj cíl a potvrdil, že BI řešení postavené na precizní práci s~metadaty a správné volbě KPI je nezbytným podkladem pro moderní manažerské rozhodování v~letecké dopravě.
 
 \end{document}
