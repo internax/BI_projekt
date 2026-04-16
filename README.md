@@ -18,7 +18,7 @@
 
 # Kontribuce jednotlivých členů
 
-**Marek Tatýrek** - Analýza, filtrování a čištění dat. Tvorba grafů, závěrečná kontrola zprávy
+**Marek Tatýrek** - Analýza, filtrování a čištění dat. Tvorba grafů, review závěrečné zprávy.
 
 **Albert Kindl** - Kontrola analytické části, napsání závěrečné zprávy
 
